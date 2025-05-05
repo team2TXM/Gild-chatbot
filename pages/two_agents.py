@@ -55,6 +55,20 @@ user_proxy = UserProxyAgent(
     is_termination_msg=lambda x: content_str(x.get("content")).find("ALL DONE") >= 0,
 )
 
+def summarize(prompt: str) -> str:
+    """Summarize the provided input text."""
+    response = openai.Completion.create(
+        model="gpt-4",  # You can specify another model if preferred
+        prompt=f"Summarize the following text: {prompt}",
+        max_tokens=150,  # Adjust based on the desired summary length
+        temperature=0.3  # Lower temperature for more focused output
+    )
+    return response.choices[0].text.strip()
+
+# Register the summarize function with both agents using a dictionary
+student_agent.register_function({"summarize": summarize})
+teacher_agent.register_function({"summarize": summarize})
+
 def stream_data(stream_str):
     for word in stream_str.split(" "):
         yield word + " "
@@ -119,6 +133,7 @@ def main():
                     st_c_chat.chat_message(msg["role"]).markdown((msg["content"]))
 
 
+
     story_template = ("Give me a story started from '##PROMPT##'."
                       f"And remeber to mention user's name {user_name} in the end."
                       f"Please express in {lang_setting}")
@@ -128,7 +143,7 @@ def main():
     f"{JOB_DEFINITION}"
     "</JOB_DEFINITION>"
     # "Please output in JSON-format only."
-    # "JSON-format is as below:"
+    # "JSON-format is as below:" 
     # f"{RESPONSE_FORMAT}"
     "Let's think step by step."
     # f"Please output in {lang_setting}"
@@ -146,8 +161,8 @@ def main():
         response = chat_result.chat_history
         return response
 
-    def show_chat_history(chat_hsitory):
-        for entry in chat_hsitory:
+    def show_chat_history(chat_history):
+        for entry in chat_history:
             role = entry.get('role')
             name = entry.get('name')
             content = entry.get('content')
