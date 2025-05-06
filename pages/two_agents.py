@@ -1,7 +1,7 @@
 import streamlit as st
-from openai import OpenAI
+
 import time
-import re
+import json
 from dotenv import load_dotenv
 import os
 
@@ -11,7 +11,7 @@ from autogen import ConversableAgent, LLMConfig, Agent
 from autogen import AssistantAgent, UserProxyAgent, LLMConfig, register_function
 from autogen.code_utils import content_str
 from coding.constant import JOB_DEFINITION, RESPONSE_FORMAT
-from coding.utils import show_chat_history, display_session_msg
+from coding.utils import show_chat_history, display_session_msg, save_messages_to_json
 from coding.agenttools import AG_search_expert, AG_search_news, AG_search_textbook, get_time
 
 # Load environment variables from .env file
@@ -30,13 +30,13 @@ seed = 42
 
 llm_config_gemini = LLMConfig(
     api_type = "google", 
-    model="gemini-2.0-flash",                    # The specific model
+    model="gemini-2.0-flash", # The specific model
     api_key=GEMINI_API_KEY,   # Authentication
 )
 
 llm_config_openai = LLMConfig(
     api_type = "openai", 
-    model="gpt-4o-mini",                    # The specific model
+    model="gpt-4o-mini",    # The specific model
     api_key=OPEN_API_KEY,   # Authentication
 )
 
@@ -115,7 +115,7 @@ def main():
         teacher_agent = ConversableAgent(
             name="Teacher_Agent",
             system_message=teacher_persona,
-            is_termination_msg=lambda x: content_str(x.get("content")).find("##ALL_DONE##") >= 0,
+            is_termination_msg=lambda x: content_str(x.get("content")).find("ALL_DONE") >= 0,
             human_input_mode="NEVER",
         )
 
@@ -132,6 +132,8 @@ def main():
         executor=student_agent,
         description="Search TEXTBOOK_LIST by title, discipline, or related_expert.",
     )
+
+
 
     register_function(
         AG_search_news,
@@ -161,7 +163,10 @@ def main():
 
     def chat(prompt: str):
         response = generate_response(prompt)
-        show_chat_history(st_c_chat, response, user_image)
+        conv_res = show_chat_history(st_c_chat, response, user_image)
+        messages = json.loads(conv_res)
+        file_path = save_messages_to_json(messages, output_dir="chat_logs")
+        st.write(f"Saved chat history to `{file_path}`")
 
     if prompt := st.chat_input(placeholder=placeholderstr, key="chat_bot"):
         chat(prompt)
