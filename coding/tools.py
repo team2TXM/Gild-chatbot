@@ -87,7 +87,7 @@ def search_news(
     """
     if df is None or df.empty:
         raise ValueError("DataFrame is empty. Fetch news first with fetch_all_news.")
-    st.info(f"sections: {sections}, query:{query}")
+
     # Ensure required columns exist
     required_cols = {'ar_section', 'ar_pubdate', 'ar_head', 'ar_desc'}
     missing_req = required_cols - set(df.columns)

@@ -4,6 +4,11 @@ import json
 import os
 from datetime import datetime
 
+def paging():
+    st.page_link("streamlit_app.py", label="Home", icon="🏠")
+    st.page_link("pages/one_agent.py", label="Teacher Agents' Talk", icon="👩‍💼")
+    st.page_link("pages/two_agents.py", label="Two Agents' Talk", icon="💭")
+
 def display_session_msg(container_obj, user_image: Optional[str] = None):
     # Initialize messages list if not present
     messages = st.session_state.setdefault("messages", [])
@@ -48,7 +53,7 @@ def show_chat_history(container_obj, chat_history: List[Dict[str, Any]], user_im
         if content is None:
             continue
         if isinstance(content, str):
-
+            content = content.replace("##ALL DONE##", "")
             content = content.replace("ALL DONE", "")
             if not content.strip():
                 continue

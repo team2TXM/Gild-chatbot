@@ -56,7 +56,7 @@ def main():
         menu_items={
             'Get Help': 'https://streamlit.io/',
             'Report a bug': 'https://github.com',
-            'About': 'About your application: **Hello world**'
+            'About': 'About your application: **0.20.3.9**'
             },
         page_icon="img/favicon.ico"
     )
@@ -98,66 +98,49 @@ def main():
     4. Use `AG_search_expert` to select expert by <DISCIPLINE>, also Use `AG_search_textbook` to select a textbook by <DISCIPLINE>.
     5. Explain to student a interesting essay within 500 words about the news using expert and textbook. Please remember to mention about the expert and textbook you cite.
 
-    6. Please output in {lang_setting}
-
+    6. Fallback & Termination  
+        – On successful completion or when ending, return '##ALL DONE##'.  
+        - Return '##ALL DONE##' and respond accordingly when:
+            • The task is completed.
+            • The input is empty.
+            • An error occurs.
+            • The request is repeated.
+            • Additional confirmation is required from the user.
+    7. Please output in {lang_setting}
     """
     with llm_config_openai:
     # with llm_config_gemini:
-        student_agent = ConversableAgent(
-            name="Student_Agent",
-            system_message=student_persona,
-        )
-
         teacher_agent = ConversableAgent(
-            name="Teacher_Agent",
+            name="Student_Agent",
             system_message=teacher_persona,
-            is_termination_msg=lambda x: content_str(x.get("content")).find("ALL_DONE") >= 0,
-            human_input_mode="NEVER",
         )
 
     user_proxy = UserProxyAgent(
         "user_proxy",
         human_input_mode="NEVER",
         code_execution_config=False,
-        is_termination_msg=lambda x: content_str(x.get("content")).find("ALL DONE") >= 0,
+        is_termination_msg=lambda x: content_str(x.get("content")).find("##ALL DONE##") >= 0,
     )
 
-    register_function(
-        AG_search_expert,
-        caller=teacher_agent,
-        executor=student_agent,
-        description="Search EXPERTS_LIST by name, discipline, or interest.",
-    )
+    def register_agent_methods(agent, proxy, methods):
+        for name, description, func in methods:
+            agent.register_for_llm(name=name, description=description)(func)
+            proxy.register_for_execution(name=name)(func)
 
-    register_function(
-        AG_search_textbook,
-        caller=teacher_agent,
-        executor=student_agent,
-        description="Search TEXTBOOK_LIST by title, discipline, or related_expert.",
-    )
+    methods_to_register = [
+        ("get_time", "Retrieve the current date and time.", get_time),
+        ("AG_search_expert", "Search EXPERTS_LIST by name, discipline, or interest.", AG_search_expert),
+        ("AG_search_textbook", "Search TEXTBOOK_LIST by title, discipline, or related_expert.", AG_search_textbook),
+        ("AG_search_news", "Search a pre-fetched news DataFrame by keywords, sections, and date range.", AG_search_news),
+    ]
 
-
-
-    register_function(
-        AG_search_news,
-        caller=teacher_agent,
-        executor=student_agent,
-        description="Search a pre-fetched news DataFrame by keywords, sections, and date range.",
-    )
-
-    register_function(
-        get_time,
-        caller=teacher_agent,
-        executor=student_agent,
-        description="Get the current date & time.",
-    )
+    # Register all methods using the helper function
+    register_agent_methods(teacher_agent, user_proxy, methods_to_register)
 
     def generate_response(prompt):
-        chat_result = student_agent.initiate_chat(
+        chat_result = user_proxy.initiate_chat(
             teacher_agent,
             message = prompt,
-            summary_method="reflection_with_llm",
-            max_turns=10,
         )
 
         response = chat_result.chat_history
@@ -167,9 +150,9 @@ def main():
     def chat(prompt: str):
         response = generate_response(prompt)
         conv_res = show_chat_history(st_c_chat, response, user_image)
-        messages = json.loads(conv_res)
-        file_path = save_messages_to_json(messages, output_dir="chat_logs")
-        st.write(f"Saved chat history to `{file_path}`")
+        # messages = json.loads(conv_res)
+        # file_path = save_messages_to_json(messages, output_dir="chat_logs")
+        # st.write(f"Saved chat history to `{file_path}`")
 
     if prompt := st.chat_input(placeholder=placeholderstr, key="chat_bot"):
         chat(prompt)
