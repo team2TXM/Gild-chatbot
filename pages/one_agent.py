@@ -9,7 +9,7 @@ from autogen.code_utils import content_str
 
 # Utilities and tools (custom tool to be added soon)
 from coding.utils import show_chat_history, display_session_msg, save_messages_to_json, paging
-from coding.agenttools import extract_pdf_content
+from coding.agenttools import extract_pdf_content, generate_wordcloud_from_pdf, update_market_data_and_show_preview
 
 # Load environment variables
 load_dotenv(override=True)
@@ -90,8 +90,9 @@ def main():
 
     methods_to_register = [
         ("extract_pdf_content", "Extracts text (and tables) from a hardcoded PDF file.", extract_pdf_content),
+        ("generate_wordcloud_from_pdf", "Generate a word cloud from the entire PDF.", generate_wordcloud_from_pdf),
+        ("fetch_market_data", "Fetch Market data from Yahoo Finance", update_market_data_and_show_preview)
     ]
-
 
     register_agent_methods(gemini_agent, user_proxy, methods_to_register)
 
