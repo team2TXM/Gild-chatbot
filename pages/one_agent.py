@@ -119,7 +119,7 @@ def main():
             st.image(image_path, caption="Word Cloud from PDF")
             return
 
-        elif "fetch" in prompt.lower() or "market data" in prompt.lower():
+        elif "market" in prompt.lower() or "market data" in prompt.lower():
             from coding.agenttools import fetch_market_data  # Assuming it's in same file or imported
             df = fetch_market_data()
             if df is not None:
