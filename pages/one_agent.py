@@ -9,7 +9,8 @@ from autogen.code_utils import content_str
 
 # Utilities and tools (custom tool to be added soon)
 from coding.utils import show_chat_history, display_session_msg, save_messages_to_json, paging
-from coding.agenttools import get_time  # You'll add your CNN fetcher here later
+from coding.agenttools import get_time, extract_pdf_content
+
 
 # Load environment variables
 load_dotenv(override=True)
@@ -89,8 +90,8 @@ def main():
             proxy.register_for_execution(name=name)(func)
 
     methods_to_register = [
-        ("get_time", "Retrieve the current date and time.", get_time),
-        # Your CNN-fetching tool will be added here
+    ("get_time", "Retrieve the current date and time.", get_time),
+    ("extract_pdf_content", "Extracts text (and tables) from a hardcoded PDF file.", extract_pdf_content),
     ]
 
     register_agent_methods(gemini_agent, user_proxy, methods_to_register)
