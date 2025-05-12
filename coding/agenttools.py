@@ -1,7 +1,7 @@
 from coding.tools import load_pdf, extract_text_by_page
 
 def extract_pdf_content():
-    pdf_path = "/workspaces/Gild-chatbot/data/uk_conflict_timeline.pdf"
+    pdf_path = "/workspaces/Gild-chatbot/data/uk_conflict_timeline.pdf"  # Update this if needed
     doc = load_pdf(pdf_path)
     if doc is None:
         return "Failed to load PDF."
