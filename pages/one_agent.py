@@ -104,6 +104,31 @@ def main():
         return chat_result.chat_history
 
     def chat(prompt: str):
+
+        if "summary" in prompt.lower() or "summarize" in prompt.lower():
+            from coding.agenttools import extract_pdf_content
+            content = extract_pdf_content()
+            st.write("### PDF Content Summary:")
+            for i, page in enumerate(content, 1):
+                st.write(f"**Page {i}**: {page[:500]}")  # Display first 500 characters of each page
+            return
+
+        elif "wordcloud" in prompt.lower():
+            from coding.agenttools import generate_wordcloud_from_pdf
+            image_path = generate_wordcloud_from_pdf()
+            st.image(image_path, caption="Word Cloud from PDF")
+            return
+
+        elif "fetch" in prompt.lower() or "market data" in prompt.lower():
+            from coding.agenttools import fetch_market_data  # Assuming it's in same file or imported
+            df = fetch_market_data()
+            if df is not None:
+                st.write("### Market Data Preview:")
+                st.dataframe(df.head())
+            else:
+                st.warning("No market data retrieved.")
+            return
+
         response = generate_response(prompt)
         show_chat_history(st_c_chat, response, user_image)
 
