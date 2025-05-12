@@ -17,7 +17,7 @@ load_dotenv(override=True)
 # Constants
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', None)
 placeholderstr = "Please input your command"
-user_name = "Fernando"
+user_name = "Team02"
 user_image = "https://www.w3schools.com/howto/img_avatar.png"
 
 # Gemini LLM config
