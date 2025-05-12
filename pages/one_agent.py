@@ -9,7 +9,13 @@ from autogen.code_utils import content_str
 
 # Utilities and tools (custom tool to be added soon)
 from coding.utils import show_chat_history, display_session_msg, save_messages_to_json, paging
-from coding.agenttools import get_time, extract_pdf_content
+from coding.agenttools import extract_pdf_content, load_pdf
+
+# At the start of your Streamlit app, load the PDF document
+pdf_path = "/workspaces/Gild-chatbot/data/uk_conflict_timeline.pdf"  # Adjust the path as needed
+doc = load_pdf(pdf_path)  # This is the PDF document object
+
+# Now `doc` is available for extracting content from the PDF
 
 
 # Load environment variables
@@ -90,7 +96,6 @@ def main():
             proxy.register_for_execution(name=name)(func)
 
     methods_to_register = [
-    ("get_time", "Retrieve the current date and time.", get_time),
     ("extract_pdf_content", "Extracts text (and tables) from a hardcoded PDF file.", extract_pdf_content),
     ]
 
@@ -104,10 +109,25 @@ def main():
         return chat_result.chat_history
 
     def chat(prompt: str):
-        response = generate_response(prompt)
-        show_chat_history(st_c_chat, response, user_image)
+        try:
+            # Try to convert the user input to an integer (page number)
+            page_number = int(prompt.strip())
+            
+            # Check if the page number is valid
+            paginated_content = extract_pdf_content(doc)  # Get content from the PDF
+            
+            # If the page exists in the content, show it
+            if 0 < page_number <= len(paginated_content):
+                content_to_show = paginated_content[page_number - 1]  # List is 0-indexed, so we subtract 1
+                show_chat_history(st_c_chat, content_to_show, user_image)
+            else:
+                show_chat_history(st_c_chat, f"Sorry, the document has only {len(paginated_content)} pages. Please request a valid page number.", user_image)
+        except ValueError:
+            # If the input isn't a valid page number
+            show_chat_history(st_c_chat, "Please enter a valid page number.", user_image)
 
-    if prompt := st.chat_input(placeholder=placeholderstr, key="chat_bot"):
+
+    if prompt := st.chat_input(placeholder="Please enter the page number you want to view.", key="chat_bot"):
         chat(prompt)
 
 if __name__ == "__main__":

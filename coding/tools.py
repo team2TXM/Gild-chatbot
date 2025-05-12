@@ -50,3 +50,13 @@ def extract_text_by_page(doc, max_pages: int = 40) -> pd.DataFrame:
             print(f"Error processing page {page_number}: {e}")
 
     return pd.DataFrame(results)
+
+def extract_pdf_content(doc, max_pages=40):
+    try:
+        # Extract text from each page
+        formatted_full_text = extract_text_by_page(doc, max_pages)  # Extract text as before
+        
+        # Return the extracted content as is (no pagination needed here, since we're extracting page-by-page)
+        return formatted_full_text
+    except Exception as e:
+        return f"I am sorry, I encountered an error trying to extract the content from the PDF file. Please try again. Error: {e}"
